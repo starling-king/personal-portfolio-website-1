@@ -3,3 +3,4 @@ node_modules/
 *.log
 file.txt
 __pycache__/
+.vscode
