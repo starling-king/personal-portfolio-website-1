@@ -14,6 +14,6 @@ export {asyncHandler}
 
 // const asyncHandler2 = (requestHandler) =>{
 //     (req,res,next) => {
-//         Promise.resolve(requestHandler(req,res,next)).catch((err)=>next(err))
+//         return Promise.resolve(requestHandler(req,res,next)).catch((err)=>next(err))
 //     }
 // }
