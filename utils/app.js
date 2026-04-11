@@ -15,4 +15,11 @@ app.use(express.static("public"))
 
 app.use(cookieParser())
 
+//routers import
+import createAdminRouter from "../routers/admin_user.router.js"
+
+
+//router decleration
+app.use("/admin",createAdminRouter)
+
 export { app }
