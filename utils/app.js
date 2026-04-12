@@ -20,6 +20,8 @@ import createAdminRouter from "../routers/admin_user.router.js"
 
 
 //router decleration
-app.use("/admin",createAdminRouter)
+app.use("/api/v1/admin",createAdminRouter)
+
+
 
 export { app }
