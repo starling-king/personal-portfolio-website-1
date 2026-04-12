@@ -19,16 +19,19 @@ const adminSchema = new mongoose.Schema({
     passwordHash:{
         type:String,
         required:true 
+    },
+    refreshToken:{
+        type:String
     }
 
 },{timestamps:true})
 
 //bcrypt the password
-adminSchema.pre("save",async function (next) {
-    if(!this.isModified('passwordHash')) {return next();}
-    this.passwordHash = await bcrypt.hash(this.passwordHash, 10)
-    next()
-})
+adminSchema.pre("save", async function () {
+    if (!this.isModified("passwordHash")) return;
+
+    this.passwordHash = await bcrypt.hash(this.passwordHash, 10);
+});
 
 //comparing the hash password with user password
 adminSchema.methods.isPasswordCorrect = async function (password){
