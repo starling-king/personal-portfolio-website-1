@@ -12,5 +12,5 @@ router.route("/register").post(
 router.route("/login").post(loginUser)
 
 //secure section
-router.route("logout").post(verifyJwt,logoutUser)
+router.route("/logout").post(verifyJwt,logoutUser)
 export default router
