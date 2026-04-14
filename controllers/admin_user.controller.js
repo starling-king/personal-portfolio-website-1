@@ -187,9 +187,59 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
 
 })
 
+const changeCurrentPassword = asyncHandler(async (req,res)=>{
+    //decript the body
+    //find the user id 
+    //check the old password
+    //hash and save new password in database
+    //send success response
+
+    const{oldpassword , newpassword} = req.body
+    const user = await Admin.findById(req.user?.id)
+    const isPasswordcorrect = await user.isPasswordCorrect(oldpassword)
+    if(!isPasswordcorrect ){
+        throw new ApiError(400,"invalid old password")
+    }
+    user.passwordHash = newpassword;
+    await user.save({validateBeforeSave:false})
+
+    return res.status(200).json(new ApiResponse(200,{},"password changed successfully"))
+
+})
+
+const getCurrentUser = asyncHandler(async(req,res)=>{
+    // find current user using middlewhere 
+    //select field
+    //send the response
+    const user = await Admin.findById(req.user?._id).select("-passwordHash -refreshToken")
+    return res.status(200).json(new ApiResponse(200,user,"current user fetched successfully"))
+})
+
+const updateAdminDetails = asyncHandler(async(req,res)=>{
+    //get the parameters
+    //using mongo db find and update the things 
+    //send the updated information 
+
+    const {username,email} = req.body
+    if (!username || !email) {
+        throw new ApiError(400,"All fields are required")
+    }
+    const admin = await Admin.findByIdAndUpdate(
+        req.user?._id,
+        {
+            $set:{username,email}
+        },
+        {new:true}
+    ).select("-passwordHash -refreshToken")
+    return res.status(200).json(new ApiResponse(200,admin,"Details changed successfully"))
+})
+
 export {
     registerUser,
     loginUser,
     logoutUser,
-    refreshAccessToken
+    refreshAccessToken,
+    changeCurrentPassword,
+    getCurrentUser,
+    updateAdminDetails
 }
