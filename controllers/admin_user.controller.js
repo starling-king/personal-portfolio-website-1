@@ -2,6 +2,12 @@ import { asyncHandler } from "../error/asyncHandlers.error.js"
 import { Admin } from "../models/admin_users.model.js"
 import { ApiError } from "../error/ApiErrors.error.js"
 import { ApiResponse } from "../error/ApiResponse.error.js"
+import jwt from "jsonwebtoken"
+
+const options = {
+        httpOnly: true,
+        secure: true
+    }
 
 const generateAccessAndRefreshTokens = async (userId) => {
     try {
@@ -132,9 +138,58 @@ const logoutUser = asyncHandler(async (req, res) => {
 
 })
 
+const refreshAccessToken = asyncHandler(async (req, res) => {
+    //decode the refresh token from cookie 
+    //validate the refresh token value
+    //verify the refresh token using jwt
+    //check refresh token decoded one to our databased refresh token
+    //generate new access token and refresh token and store refresh in the database
+    //send the new access token and refresh token in the cookies to the user
+
+    const incommingRefreshToken = req.cookies.refreshToken || req.body.refreshToken
+
+    if (!incommingRefreshToken) {
+        throw new ApiError(401, "unauthorized request")
+    }
+
+    try {
+        const decodedToken = jwt.verify(
+            incommingRefreshToken,
+            Process.env.REFRESH_TOKEN_SECRET
+        )
+    
+        const admin = await Admin.findById(decodedToken?._id)
+    
+        if (!admin) {
+            throw new ApiError(401,"Invalid refresh token")
+        }
+    
+        if (incommingRefreshToken !== user?.refreshToken) {
+            throw new ApiError(401,"Refresh token is expired or used")
+        }
+    
+        const {newaccessToken,newrefreshToken}= await generateAccessAndRefreshTokens(admin._id)
+    
+        return res.status(200)
+        .cookie("accessToken",newaccessToken,options)
+        .cookie("refreshToken",newrefreshToken,options)
+        .json(
+            new ApiResponse(
+                200,
+                {accessToken:newaccessToken},
+                "Access token refresh Successful"
+            )
+        )
+    } catch (error) {
+        throw new ApiError(401,error?.message || "Invalid refresh token to access")
+    }
+
+
+})
 
 export {
     registerUser,
     loginUser,
-    logoutUser
+    logoutUser,
+    refreshAccessToken
 }
