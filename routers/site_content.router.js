@@ -7,7 +7,7 @@ const router = Router()
 router.route("/writeContent").post(verifyJwt,writeContent)
 
 //public
-router.route("/read").get(read)
+router.route("/read/:user").get(read)
 
 
 export default router
