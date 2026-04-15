@@ -4,6 +4,12 @@ import jwt  from "jsonwebtoken"
 import { Admin } from "../models/admin_users.model.js";
 
 export const verifyJwt = asyncHandler(async (req, res, next) => {
+    //take token from cookies and remove brearar keyword
+    //verify the token is their or not in cookie
+    //verify the token using jwt.verify passing token and access token screte
+    //create user identity using decode verifiaction 
+    //check if the user identity is their or not 
+    //make universal identity verifier req.user = user;
     try {
         const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer", "")
         if (!token) {

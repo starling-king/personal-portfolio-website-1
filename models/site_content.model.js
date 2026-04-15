@@ -20,3 +20,4 @@ const siteContentSchema = new mongoose.Schema({
     }
 },{timestamps:true})
 export const SiteContent = mongoose.model("SiteContent",siteContentSchema)
+

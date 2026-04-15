@@ -19,11 +19,11 @@ app.use(cookieParser())
 
 //routers import
 import createAdminRouter from "../routers/admin_user.router.js"
-
+import createSiteContent from "../routers/site_content.router.js"
 
 //router decleration
 app.use("/api/v1/admin",createAdminRouter)
-
+app.use("/api/v1/content",createSiteContent)
 
 
 export { app }
