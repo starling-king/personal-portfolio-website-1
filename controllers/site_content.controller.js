@@ -1,8 +1,9 @@
-import { ApiError } from "../error/ApiErrors.error";
+import { ApiError } from "../error/ApiErrors.error.js";
 import { ApiResponse } from "../error/ApiResponse.error.js"
-import { asyncHandler } from "../error/asyncHandlers.error";
-import { Admin } from "../models/admin_users.model";
-import { SiteContent } from "../models/site_content.model";
+import { asyncHandler } from "../error/asyncHandlers.error.js";
+import { Admin } from "../models/admin_users.model.js";
+import { SiteContent } from "../models/site_content.model.js";
+
 
 const writeContent = asyncHandler(async (req, res) => {
     //deconstruct the sectionKey,contentValue,contentType from body
@@ -15,7 +16,7 @@ const writeContent = asyncHandler(async (req, res) => {
 
     const { sectionKey, contentValue, contentType } = req.body;
 
-    user = req.user?._id;
+    const user = req.user?._id;
 
     if ([sectionKey, contentType, contentValue].some((field) => !field || String(field).trim() === "")) {
         throw new ApiError(400, "All fields are required");
@@ -23,12 +24,12 @@ const writeContent = asyncHandler(async (req, res) => {
 
     const updating = await SiteContent.findOneAndUpdate(
         {
-            section_key: sectionKey,
-            updated_by_admin_id: user
+            sectionKey: sectionKey,
+            updatedByAdminId: user
         },
         {
-            content_value: contentValue,
-            content_type: contentType
+            contentValue: contentValue,
+            contentType: contentType
         },
         {
             upsert: true, // Creates the record if not found

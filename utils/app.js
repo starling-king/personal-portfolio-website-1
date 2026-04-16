@@ -25,5 +25,9 @@ import createSiteContent from "../routers/site_content.router.js"
 app.use("/api/v1/admin",createAdminRouter)
 app.use("/api/v1/content",createSiteContent)
 
+//setup global error
+import globalError from "../error/global.error.js";
+app.use(globalError);
+
 
 export { app }

@@ -11,7 +11,7 @@ export const verifyJwt = asyncHandler(async (req, res, next) => {
     //check if the user identity is their or not 
     //make universal identity verifier req.user = user;
     try {
-        const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer", "")
+        const token = req.cookies?.accessToken || req.header("Authorization")?.replace("Bearer ", "")
         if (!token) {
             throw new ApiError(401, "unauthorized request")
         }
