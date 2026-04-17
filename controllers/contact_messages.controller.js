@@ -1,0 +1,78 @@
+import { asyncHandler } from "../error/asyncHandlers.error.js";
+import { ApiError } from "../error/ApiErrors.error.js";
+import { ApiResponse } from "../error/ApiResponse.error.js";
+import { Message } from "../models/contact_messages.model.js";
+import { Admin } from "../models/admin_users.model.js";
+
+
+//visitor side
+const SavetheDataOfForm = asyncHandler(async (req, res) => {
+    //Take data form the user form like name,email,message,username
+    //verify if it is empty or wrong
+    //get admin details by finding admin through username
+    //save it into database with the admin id
+    //return to the user is readed message and replied message both
+
+    try {
+        const { name, email, message } = req.body
+        const{ username } = req.params
+
+        const targatedAdmin = await Admin.findOne({username:username})
+
+        if(!targatedAdmin){
+            throw new ApiError(404,"portfolio owner not found")
+        }
+
+        if ([name, email, message].some((field) => !field || String(field).trim() === "")) {
+            throw new ApiError(400, "All field required")
+        }
+
+        if (!email.includes("@")) {
+            throw new ApiError(400, "Invalid email");
+        }
+
+        // const admin = req.user?._id
+
+        const storing = await Message.create({
+            name: name,
+            email: email,
+            message: message,
+            repliedExpectedByAdminId: targatedAdmin._id
+        })
+
+        const { repliedAt, isRead } = storing.toObject()
+
+        res.status(201).json(new ApiResponse(201, { repliedAt, isRead }, "your message saved successfully"))
+
+    } catch (error) {
+        throw new ApiError(500, "Failed to save the information")
+    }
+})
+
+//Admin side
+const DiscoverMessage = asyncHandler(async(req,res)=>{
+    //find the sorted data from the message based on admin id 
+    //set the isread date
+    //send the response to the admin
+
+})
+
+//Admin side
+const markedData = asyncHandler(async(req,res)=>{
+    //get the bookean value from the admin is_replied
+    //verifiacation
+    //update the database
+    //send the response
+})
+
+//Visitor side
+const TheInfo = asyncHandler(async(req,res)=>{
+    //
+})
+
+export {
+    SavetheDataOfForm,
+    DiscoverMessage,
+    markedData,
+    TheInfo
+}

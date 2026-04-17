@@ -15,12 +15,13 @@ const messageSchema = new mongoose.Schema({
     },
     repliedAt:{
         type:Date,
+        default:null
     },
-    is_read:{
+    isRead:{
         type:Boolean,
         default:false
     },
-    repliedByAdminId:{
+    repliedExpectedByAdminId:{
         type:mongoose.Schema.Types.ObjectId,
         ref:"Admin"
     }
