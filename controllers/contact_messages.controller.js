@@ -15,12 +15,12 @@ const SavetheDataOfForm = asyncHandler(async (req, res) => {
 
     try {
         const { name, email, message } = req.body
-        const{ username } = req.params
+        const { username } = req.params
 
-        const targatedAdmin = await Admin.findOne({username:username})
+        const targatedAdmin = await Admin.findOne({ username: username })
 
-        if(!targatedAdmin){
-            throw new ApiError(404,"portfolio owner not found")
+        if (!targatedAdmin) {
+            throw new ApiError(404, "portfolio owner not found")
         }
 
         if ([name, email, message].some((field) => !field || String(field).trim() === "")) {
@@ -49,30 +49,64 @@ const SavetheDataOfForm = asyncHandler(async (req, res) => {
     }
 })
 
-//Admin side
-const DiscoverMessage = asyncHandler(async(req,res)=>{
+const DiscoverMessage = asyncHandler(async (req, res) => {
     //find the sorted data from the message based on admin id 
     //set the isread date
     //send the response to the admin
+    const filtered = await Message.find(
+        {
+            repliedExpectedByAdminId: req.user?._id,
+            isRead: false
+        },
+    ).select("-isRead -repliedAt").sort({ createdAt: -1 })
+
+    if (filtered.length === 0) {
+        throw new ApiError(404, "the message is not saved")
+    }
+
+    const messageIds = filtered.map(msg => msg._id);
+
+    await Message.updateMany(
+        {
+            _id: { $in: messageIds }
+        },
+        {
+            $set:
+            {
+                isRead: true,
+                repliedAt: new Date()
+            }
+        }
+    )
+
+    return res.status(200).json(new ApiResponse(200, {
+        updatedStatus:
+        {
+            filtered, isRead: true,
+            repliedAt: new Date()
+        }
+    }, "message completed successfully"))
+
+
 
 })
 
-//Admin side
-const markedData = asyncHandler(async(req,res)=>{
-    //get the bookean value from the admin is_replied
-    //verifiacation
-    //update the database
-    //send the response
-})
+// //Admin side
+// const markedData = asyncHandler(async (req, res) => {
+//     //get the bookean value from the admin is_replied
+//     //verifiacation
+//     //update the database
+//     //send the response
+// })
 
-//Visitor side
-const TheInfo = asyncHandler(async(req,res)=>{
-    //
-})
+// //Visitor side
+// const TheInfo = asyncHandler(async (req, res) => {
+//     //
+// })
 
 export {
     SavetheDataOfForm,
-    DiscoverMessage,
-    markedData,
-    TheInfo
+    DiscoverMessage
+    // markedData,
+    // TheInfo
 }
