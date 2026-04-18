@@ -2,16 +2,20 @@ import mongoose from "mongoose";
 const projectSchema = new mongoose.Schema({
     title:{
         type:String,
-        required:true
+        required:true,
+        trim:true
     },
     slug:{
         type:String,
         required:true,
-        unique:true
+        index:true,
+        trim:true
     },
     category:{
         type:String,
-        required:true
+        required:true,
+        index:true,
+        trim:true
     },
     isFeatured:{
         type:Boolean,
@@ -45,14 +49,22 @@ const projectSchema = new mongoose.Schema({
     }
 ],
     githubLink:{
-        type:String
+        type:String,
+        trim:true,
+        dafault:null
     },
     liveLink:{
-        type:String
+        type:String,
+        trim: true,
+        required:true
     },
     createdByAdminId:{
         type:mongoose.Schema.Types.ObjectId,
         ref:"Admin"
     }
 },{timestamps:true})
+
+projectSchema.index({ is_published: 1, is_featured: 1 });
+projectSchema.index({ createdByAdminId: 1, slug: 1 }, { unique: true });
+
 export const Project = mongoose.model("Project",projectSchema)

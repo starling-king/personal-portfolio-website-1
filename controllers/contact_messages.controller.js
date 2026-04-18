@@ -91,22 +91,8 @@ const DiscoverMessage = asyncHandler(async (req, res) => {
 
 })
 
-// //Admin side
-// const markedData = asyncHandler(async (req, res) => {
-//     //get the bookean value from the admin is_replied
-//     //verifiacation
-//     //update the database
-//     //send the response
-// })
-
-// //Visitor side
-// const TheInfo = asyncHandler(async (req, res) => {
-//     //
-// })
 
 export {
     SavetheDataOfForm,
     DiscoverMessage
-    // markedData,
-    // TheInfo
 }
