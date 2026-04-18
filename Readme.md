@@ -30,3 +30,31 @@ To run this system architecture locally:
    ```bash
    git clone [https://github.com/starling-king/personal-portfolio-website-1.git](https://github.com/starling-king/personal-portfolio-website-1.git)
    cd personal-portfolio-website-1
+   ```
+
+2. **Install dependencies:**
+   ```bash
+   npm install
+   ```
+
+3. **Environment Configuration:**
+   Create a `.env` file in the root directory and configure the following variables:
+   ```env
+   PORT=3000
+   MONGODB_URI=your_database_connection_string
+   JWT_SECRET=your_access_token_secret
+   JWT_REFRESH_SECRET=your_refresh_token_secret
+   ```
+
+4. **Initialize the server:**
+   ```bash
+   npm run dev
+   ```
+
+## 🗺️ System Flow (Backend)
+1. Client requests resources.
+2. Middleware validates JWT.
+3. If token expired -> Trigger `401` -> Client requests refresh -> Issue new access token.
+4. Route controllers execute database queries via predefined Mongoose schemas.
+5. Standardized JSON response returned to client.
+```
