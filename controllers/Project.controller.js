@@ -4,6 +4,7 @@ import { asyncHandler } from "../error/asyncHandlers.error.js";
 import slugify from "slugify"
 import { Project } from "../models/Project.model.js";
 import mongoose from "mongoose";
+import { Admin } from "../models/admin_users.model.js";
 // import { Admin } from "../models/admin_users.model.js";
 
 const createProject = asyncHandler(async (req, res) => {
@@ -91,7 +92,7 @@ const getAllAdminProjects = asyncHandler(async (req, res) => {
 
 })
 
-const getAdminProjectBySlug = asyncHandler(async (req, res) => {
+const getAdminProjectByID = asyncHandler(async (req, res) => {
     //destructure the slugname
     //verify 
     //find data using slug
@@ -240,10 +241,92 @@ const deleteProject = asyncHandler(async (req, res) => {
 
 })
 
+//public endpoints
+
+const getPublicProjects = asyncHandler(async (req, res) => {
+    //destructure the admin username
+    //get admin id form database
+    //find all projects related to admin id and published is ture and sort top based on featured = true
+    //send the response of the data 
+    try {
+        const { username } = req.params
+        const { featured, cateogary } = req.query
+
+        const admin = await Admin.findOne({ username: username })
+
+        if (!admin) {
+            throw new ApiError(400, "User not found")
+        }
+
+        const query = {
+            createdByAdminId: admin._id,
+            isPublished: true
+        }
+
+
+        if (featured === "true") {
+            query.isFeatured = true;
+        } else if (featured === "false") {
+            query.isFeatured = false;
+        }
+
+        if (cateogary) {
+            query.category = cateogary;
+        }
+
+        if (cateogary) {
+            query.category = cateogary
+        }
+
+        const datavalue = await Project.find(query).sort({ isFeatured: -1, createdAt: -1 })
+
+        return res.status(200).json(new ApiResponse(200, datavalue, "success to fetch data"))
+
+    } catch (error) {
+        const statuscode1 = error.statusCode || 500
+        throw new ApiError(statuscode1, error.message || "failed to get the project")
+    }
+})
+
+const getProjectBySlug = asyncHandler(async (req, res) => {
+    try {
+        //get the username and the slug project name
+        //verify them
+        //find them 
+        //verify if exist
+        //return the response
+
+        const { username, slug } = req.params
+
+        if (!username || !slug) {
+            throw new ApiError(400, "Please provide both the username and project name in the URL");
+        }
+        const adminid = await Admin.findOne({ username: username })
+
+        if (!adminid) {
+            throw new ApiError(404, "User not found");
+        }
+
+        const datavalueofslug = await Project.findOne({ createdByAdminId: adminid._id, slug: slug, isPublished: true })
+
+        if (!datavalueofslug) {
+            throw new ApiError(404, "project not found or not published")
+        }
+
+        return res.status(200).json(new ApiResponse(200, datavalueofslug, "successful fetch the project from slug"))
+
+    } catch (error) {
+        const statuscode1 = error.statusCode || 500;
+        throw new ApiError(statuscode1, error.message || "internal server error")
+    }
+})
+
 export {
     createProject,
     getAllAdminProjects,
-    getAdminProjectBySlug,
+    getAdminProjectByID,
     updateProject,
-    deleteProject
+    deleteProject,
+    getPublicProjects,
+    getProjectBySlug
 }
