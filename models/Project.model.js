@@ -8,7 +8,6 @@ const projectSchema = new mongoose.Schema({
     slug:{
         type:String,
         required:true,
-        index:true,
         trim:true
     },
     category:{
@@ -64,7 +63,7 @@ const projectSchema = new mongoose.Schema({
     }
 },{timestamps:true})
 
-projectSchema.index({ is_published: 1, is_featured: 1 });
-projectSchema.index({ createdByAdminId: 1, slug: 1 }, { unique: true });
+projectSchema.index({ is_published: 1, is_featured: 1 });//compound indexing
+projectSchema.index({ createdByAdminId: 1,is_published: 1, slug: 1 }, { unique: true });//scope unique indexing 
 
 export const Project = mongoose.model("Project",projectSchema)
