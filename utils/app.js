@@ -23,12 +23,14 @@ import createAdminRouter from "../routers/admin_user.router.js"
 import createSiteContent from "../routers/site_content.router.js"
 import sendMessage from "../routers/contact_messages.router.js"
 import projectRouter from "../routers/Project.router.js"
+import imageRouter from "../routers/project_images.router.js"
 
 //router decleration
 app.use("/api/v1/admin",createAdminRouter)
 app.use("/api/v1/content",createSiteContent)
 app.use("/api/v1/Message",sendMessage)
 app.use("/api/v1/Projects",projectRouter)
+app.use("/api/v1/images",imageRouter)
 
 //setup global error
 import globalError from "../error/global.error.js";

@@ -16,6 +16,11 @@ const imageSchema = new mongoose.Schema({
     sortOrder:{
         type:Number,
         required:true
+    },
+    userid:{
+        type:mongoose.Schema.Types.ObjectId,
+        ref:"Admin",
+        required:true
     }
 },{timestamps:true})
 imageSchema.index({ projectId: 1, sortOrder: 1 })
