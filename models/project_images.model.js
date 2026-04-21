@@ -25,3 +25,4 @@ const imageSchema = new mongoose.Schema({
 },{timestamps:true})
 imageSchema.index({ projectId: 1, sortOrder: 1 })
 export const Image = mongoose.model("Image",imageSchema)
+

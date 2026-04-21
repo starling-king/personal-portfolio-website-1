@@ -9,4 +9,5 @@ router.route("/projects/:projectId/images").post(verifyJwt,
     upload.array('images', 5),
     CreateImageCollectionOfProject)
 
+    
 export default router
