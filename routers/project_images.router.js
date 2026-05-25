@@ -9,5 +9,7 @@ router.route("/projects/:projectId/images").post(verifyJwt,
     upload.array('images', 5),
     CreateImageCollectionOfProject)
 
+// router.route("/projects/:projectId/Deleteimages").Delete(verifyJwt,RemoveImageCollectionOfProject)
+
     
 export default router
