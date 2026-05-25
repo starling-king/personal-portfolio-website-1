@@ -3,7 +3,9 @@ import { asyncHandler } from "../error/asyncHandlers.error.js";
 import { ApiError } from "../error/ApiErrors.error.js";
 import { ApiResponse } from "../error/ApiResponse.error.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js"
+import { v2 as cloudinary } from "cloudinary";
 import fs from 'fs';
+import { response } from "express";
 
 const CreateImageCollectionOfProject = asyncHandler(async (req, res) => {
     //read the data from parameters and get project id
@@ -11,7 +13,7 @@ const CreateImageCollectionOfProject = asyncHandler(async (req, res) => {
     //check images is uploaded or not
     //find the last image if their
     //determint their sort order
-    //upload the images on cloudinary and get the url array
+    //upload the images on cloudinary and get the url and public id array
     //upload the image url in the mongo db along with project id to identify them
 
     try {
@@ -38,11 +40,14 @@ const CreateImageCollectionOfProject = asyncHandler(async (req, res) => {
                     fs.unlinkSync(file.path);
                 }
 
-                if (!uploadResult || !uploadResult.url) {
+                if (!uploadResult || !uploadResult.url || !uploadResult.public_id) {
                     throw new ApiError(500, `Failed to upload file ${file.originalname} to Cloudinary.`);
                 }
 
-                return uploadResult.url;
+                return {
+                    url: uploadResult.url,
+                    publicId: uploadResult.public_id
+                };
 
             } catch (uploadError) {
 
@@ -57,10 +62,11 @@ const CreateImageCollectionOfProject = asyncHandler(async (req, res) => {
         const imageUrls = await Promise.all(uploadPromises);
 
 
-        const imageDocuments = imageUrls.map((url, index) => {
+        const imageDocuments = imageUrls.map((data, index) => {
             return {
                 projectId: projectId,
-                imageUrl: url,
+                imageUrl: data.url,
+                publicId: data.publicId,
                 altText: req.body.altText || `Project image ${currentSortOrder + index + 1}`,
                 sortOrder: currentSortOrder + index + 1,
                 userid: req.user?._id
@@ -79,19 +85,45 @@ const CreateImageCollectionOfProject = asyncHandler(async (req, res) => {
     }
 })
 
-// const RemoveImageCollectionOfProject = asyncHandler(async (req, res) => {
-//     try {
+const RemoveImageCollectionOfProject = asyncHandler(async (req, res) => {
+    //get project id,and image id from the param also verify
+    //using find one find the public id of the image also verify
+    //using cloudinary.uploader.destroy give the public id and delete the image from cloudinary
+    //after deleting from cloudinary delete that data from database
+    try {
+        const { projectId, imageId } = req.params;
 
+        if (!projectId || projectId.trim() == "") {
+            throw new ApiError(400, "please enter the project id")
+        }
+
+        if (!imageId || imageId.trim() == "") {
+            throw new ApiError(400, "please enter the image id")
+        }
+
+        const PublicIdOfimage = await Image.findOne({ _id: imageId, projectId: projectId })
+
+        if (!PublicIdOfimage) {
+            throw new ApiError(400, "does not get this specific image")
+        }
+
+        const destroyer = await cloudinary.uploader.destroy(PublicIdOfimage.publicId)
+
+        if (destroyer.result !== "ok" && destroyer.result !== "not found") {
+            throw new ApiError(500, "Failed to delete image from Cloudinary.");
+        }
+        await Image.findByIdAndDelete(imageId);
+        res.status(200).json(new ApiResponse(200, {}, "successfully delete the image"))
+
+    } catch (error) {
+        const statusCode = error.statusCode || 500;
+        throw new ApiError(statusCode, error.message || "Internal server error during image deletion");
         
-
-//     } catch (error) {
-//         const statusCode = error.statusCode || 500;
-//         throw new ApiError(statusCode, error.message || "Internal server error during image upload");
-//     }
-// })
+    }
+})
 
 
 export {
-    CreateImageCollectionOfProject
-    // RemoveImageCollectionOfProject
+    CreateImageCollectionOfProject,
+    RemoveImageCollectionOfProject
 }

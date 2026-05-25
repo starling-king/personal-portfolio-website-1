@@ -9,6 +9,10 @@ cloudinary.config({
 });
 
 const uploadOnCloudinary = async (localFilePath) =>{
+    //take local file path and verify
+    //upload the image on cloudinary
+    //send the response
+    //if error come remove the temperory file
     try {
         if(!localFilePath){ return console.error("File not found!")}
         //upload file on cloudinary
@@ -16,12 +20,13 @@ const uploadOnCloudinary = async (localFilePath) =>{
             resource_type:"auto"
         })
         //file has been uploaded successfully
-        console.log("File is uploaded on cloudinary: ",response.url)
         return response;
     } catch (error) {
         fs.unlinkSync(localFilePath)  //remove the locally saved temperory file if upload failed
         return null;
     }
 }
+
+
 
 export {uploadOnCloudinary}
