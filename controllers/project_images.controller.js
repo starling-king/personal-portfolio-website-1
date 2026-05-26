@@ -5,7 +5,9 @@ import { ApiResponse } from "../error/ApiResponse.error.js";
 import { uploadOnCloudinary } from "../utils/cloudinary.js"
 import { v2 as cloudinary } from "cloudinary";
 import fs from 'fs';
-import { response } from "express";
+import { Project } from "../models/Project.model.js";
+import mongoose from "mongoose";
+// import { response } from "express";
 
 const CreateImageCollectionOfProject = asyncHandler(async (req, res) => {
     //read the data from parameters and get project id
@@ -27,8 +29,28 @@ const CreateImageCollectionOfProject = asyncHandler(async (req, res) => {
             throw new ApiError(400, "Please upload at least one image.");
         }
 
-        const lastImage = await Image.findOne({ project_id: projectId }).sort({ sort_order: -1 });
-        let currentSortOrder = lastImage ? lastImage.sort_order : 0;
+        const project = await Project.findOne({
+            _id: projectId,
+            createdByAdminId: new mongoose.Types.ObjectId(req.user._id)
+        });
+
+        if (!project) {
+            throw new ApiError(404, "Project not found or unauthorized.");
+        }
+
+        
+        const currentImageCount = await Image.countDocuments({ projectId: projectId });
+
+        if (currentImageCount + req.files.length > 5) {
+            const allowed = 5 - currentImageCount;
+            throw new ApiError(400, `Limit exceeded. You can only upload ${allowed} more images.`);
+        }
+
+        
+        const lastImage = await Image.findOne({ projectId: projectId }).sort({ sortOrder: -1 });
+
+      
+        const currentSortOrder = lastImage ? lastImage.sortOrder : 0;
 
 
         const uploadPromises = req.files.map(async (file) => {
@@ -69,7 +91,7 @@ const CreateImageCollectionOfProject = asyncHandler(async (req, res) => {
                 publicId: data.publicId,
                 altText: req.body.altText || `Project image ${currentSortOrder + index + 1}`,
                 sortOrder: currentSortOrder + index + 1,
-                userid: req.user?._id
+                userid: req.user._id
             };
         });
 
@@ -77,7 +99,7 @@ const CreateImageCollectionOfProject = asyncHandler(async (req, res) => {
         const dataEntry = await Image.insertMany(imageDocuments);
 
 
-        return res.status(201).json(new ApiResponse(200, dataEntry, `${imageDocuments.length} images uploaded successfully.`));
+        return res.status(200).json(new ApiResponse(200, dataEntry, `${imageDocuments.length} images uploaded successfully.`));
 
     } catch (error) {
         const statusCode = error.statusCode || 500;
@@ -118,7 +140,7 @@ const RemoveImageCollectionOfProject = asyncHandler(async (req, res) => {
     } catch (error) {
         const statusCode = error.statusCode || 500;
         throw new ApiError(statusCode, error.message || "Internal server error during image deletion");
-        
+
     }
 })
 
