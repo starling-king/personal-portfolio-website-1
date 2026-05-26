@@ -10,16 +10,16 @@ const buildProjectPipeline = (matchConditions) => {
                 from: "images",
                 localField: "_id",
                 foreignField: "projectId",
-                as: "images" 
+                as: "image" 
             }
         },
         {
             $project: {
                 __v: 0,
-                "images.__v": 0,
-                "images.projectId": 0,
-                "images.createdAt": 0,
-                "images.updatedAt": 0
+                "image.__v": 0,
+                "image.projectId": 0,
+                "image.createdAt": 0,
+                "image.updatedAt": 0
             }
         }
     ];

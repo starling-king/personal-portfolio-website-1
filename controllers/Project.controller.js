@@ -6,6 +6,8 @@ import { Project } from "../models/Project.model.js";
 import mongoose from "mongoose";
 import { Admin } from "../models/admin_users.model.js";
 import { buildProjectPipeline } from "../utils/aggrigation-builder.js";
+import { v2 as cloudinary } from "cloudinary";
+import { Image } from "../models/project_images.model.js"
 // import { Admin } from "../models/admin_users.model.js";
 
 
@@ -237,7 +239,9 @@ const updateProject = asyncHandler(async (req, res) => {
 const deleteProject = asyncHandler(async (req, res) => {
     //get the id from url
     //validate
-    //findOne and delete the project using project id 
+    //find the images using the data model
+    //validate and delete using image public id on cloudinary first using promise all
+    //delete the image from database and also delete the project too
     //send response
 
     try {
@@ -246,13 +250,27 @@ const deleteProject = asyncHandler(async (req, res) => {
         if (!projectId || !mongoose.Types.ObjectId.isValid(projectId)) {
             throw new ApiError(400, "please enter the project id in url")
         }
-        const value = await Project.findOneAndDelete({ _id: projectId, createdByAdminId: req.user?._id });
 
-        if (!value) {
+        const project = await Project.findOne({ _id: projectId, createdByAdminId: req.user._id });
+
+        if (!project) {
             throw new ApiError(404, "Project not found or unauthorized to delete");
         }
 
-        return res.status(200).json(new ApiResponse(200, value, "the project delete successfully"))
+        const imagevalue = await Image.find({ projectId: projectId })
+
+        if (imagevalue.length > 0) {
+            const destroyPromises = imagevalue.map((img) => {
+                return cloudinary.uploader.destroy(img.publicId);
+            });
+
+            await Promise.all(destroyPromises);
+        }
+
+            await Image.deleteMany({ projectId: projectId })
+            await Project.findByIdAndDelete(projectId);
+        
+        return res.status(200).json(new ApiResponse(200, null, "the project delete successfully"))
 
     } catch (error) {
         const statuscode1 = error.statusCode || 500;
@@ -344,8 +362,8 @@ const getProjectBySlug = asyncHandler(async (req, res) => {
 
         const matchConditions = {
             createdByAdminId: new mongoose.Types.ObjectId(admin._id),
-            slug: slug, 
-            isPublished: true 
+            slug: slug,
+            isPublished: true
         }
 
         const datavalueofslug = await Project.aggregate(buildProjectPipeline(matchConditions))
