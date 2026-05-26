@@ -5,7 +5,10 @@ import slugify from "slugify"
 import { Project } from "../models/Project.model.js";
 import mongoose from "mongoose";
 import { Admin } from "../models/admin_users.model.js";
+import { buildProjectPipeline } from "../utils/aggrigation-builder.js";
 // import { Admin } from "../models/admin_users.model.js";
+
+
 
 const createProject = asyncHandler(async (req, res) => {
     //destructure the body of the form or the body 
@@ -78,12 +81,20 @@ const createProject = asyncHandler(async (req, res) => {
 })
 
 const getAllAdminProjects = asyncHandler(async (req, res) => {
-    //find the data using adminid and slug
+    //find the data using adminid and verify
     //return the response
     try {
 
-        const projectdata = await Project.find({ createdByAdminId: req.user?._id })
+        // const projectdata = await Project.find({ createdByAdminId: req.user?._id })
+        const matchConditions = {
+            createdByAdminId: new mongoose.Types.ObjectId(req.user._id)
+        }
 
+        const projectdata = await Project.aggregate(buildProjectPipeline(matchConditions))
+
+        if (projectdata.length === 0) {
+            throw new ApiError(404, "their is no project")
+        }
 
         return res.status(200).json(new ApiResponse(200, projectdata, "The data fetched successfully"))
     } catch (error) {
@@ -99,19 +110,27 @@ const getAdminProjectByID = asyncHandler(async (req, res) => {
     //send the response
 
     try {
-        const Iddata = req.params.Id
+        const Iddata = req.params.id
 
         if (!Iddata || !mongoose.Types.ObjectId.isValid(Iddata)) {
             throw new ApiError(400, "please enter the valid project id in url")
         }
 
-        const proData = await Project.findOne({ _id: Iddata, createdByAdminId: req.user?._id })
+        // const proData = await Project.findOne({ _id: Iddata, createdByAdminId: req.user?._id })
 
-        if (!proData) {
-            throw new ApiError(404, "project not found")
+        const matchConditions = {
+            createdByAdminId: new mongoose.Types.ObjectId(req.user._id),
+            _id: new mongoose.Types.ObjectId(Iddata)
         }
 
-        return res.status(200).json(new ApiResponse(200, proData, "Successful"))
+        const projectdata = await Project.aggregate(buildProjectPipeline(matchConditions))
+
+        if (projectdata.length === 0) {
+            throw new ApiError(404, "their is no project")
+        }
+
+
+        return res.status(200).json(new ApiResponse(200, projectdata[0], "Successful"))
     } catch (error) {
         const statusCode = error.statusCode || 500;
 
@@ -220,6 +239,7 @@ const deleteProject = asyncHandler(async (req, res) => {
     //validate
     //findOne and delete the project using project id 
     //send response
+
     try {
         const projectId = req.params.id;
 
@@ -255,11 +275,17 @@ const getPublicProjects = asyncHandler(async (req, res) => {
         const admin = await Admin.findOne({ username: username })
 
         if (!admin) {
-            throw new ApiError(400, "User not found")
+            throw new ApiError(404, "User not found")
         }
 
+        // const query = {
+        //     createdByAdminId: admin._id,
+        //     isPublished: true
+        // }
+
+
         const query = {
-            createdByAdminId: admin._id,
+            createdByAdminId: new mongoose.Types.ObjectId(admin._id),
             isPublished: true
         }
 
@@ -274,11 +300,18 @@ const getPublicProjects = asyncHandler(async (req, res) => {
             query.category = cateogary;
         }
 
-        if (cateogary) {
-            query.category = cateogary
-        }
+        // const datavalue = await Project.find(query).sort({ isFeatured: -1, createdAt: -1 })
 
-        const datavalue = await Project.find(query).sort({ isFeatured: -1, createdAt: -1 })
+        const pipeline = buildProjectPipeline(query)
+
+        pipeline.push({
+            $sort: {
+                isFeatured: -1,
+                createdAt: -1
+            }
+        });
+
+        const datavalue = await Project.aggregate(pipeline);
 
         return res.status(200).json(new ApiResponse(200, datavalue, "success to fetch data"))
 
@@ -301,19 +334,27 @@ const getProjectBySlug = asyncHandler(async (req, res) => {
         if (!username || !slug) {
             throw new ApiError(400, "Please provide both the username and project name in the URL");
         }
-        const adminid = await Admin.findOne({ username: username })
+        const admin = await Admin.findOne({ username: username })
 
-        if (!adminid) {
+        if (!admin) {
             throw new ApiError(404, "User not found");
         }
 
-        const datavalueofslug = await Project.findOne({ createdByAdminId: adminid._id, slug: slug, isPublished: true })
+        // const datavalueofslug = await Project.findOne({ createdByAdminId: adminid._id, slug: slug, isPublished: true })
 
-        if (!datavalueofslug) {
+        const matchConditions = {
+            createdByAdminId: new mongoose.Types.ObjectId(admin._id),
+            slug: slug, 
+            isPublished: true 
+        }
+
+        const datavalueofslug = await Project.aggregate(buildProjectPipeline(matchConditions))
+
+        if (datavalueofslug.length === 0) {
             throw new ApiError(404, "project not found or not published")
         }
 
-        return res.status(200).json(new ApiResponse(200, datavalueofslug, "successful fetch the project from slug"))
+        return res.status(200).json(new ApiResponse(200, datavalueofslug[0], "successful fetch the project from slug"))
 
     } catch (error) {
         const statuscode1 = error.statusCode || 500;

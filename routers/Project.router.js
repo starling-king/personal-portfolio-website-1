@@ -6,12 +6,12 @@ const router = Router()
 
 router.route("/createProject").post(verifyJwt,createProject)
 router.route("/getAllAdminProjects").get(verifyJwt,getAllAdminProjects)
-router.route("/getAdminProjectByID/:Id").get(verifyJwt,getAdminProjectByID)
+router.route("/getAdminProjectByID/:id").get(verifyJwt,getAdminProjectByID)
 router.route("/updateProject/:id").patch(verifyJwt,updateProject)
 router.route("/deleteProject/:id").delete(verifyJwt,deleteProject)
 
 //public router
-router.route("/getPublicProjects/:username").get(getPublicProjects)//?featured&cateogary
+router.route("/getPublicProjects/:username").get(getPublicProjects)
 router.route("/getProjectBySlug/:username/:slug").get(getProjectBySlug)
 
 export default router
