@@ -39,5 +39,5 @@ jobs:
             sudo docker pull ${{ secrets.DOCKER_USERNAME }}/portfolio-api:latest
             sudo docker stop portfolio-api-container || true
             sudo docker rm portfolio-api-container || true
-            sudo docker run -d --name portfolio-api-container -p 8000:8000 --env-file /home/ubuntu/.env ${{ secrets.DOCKER_USERNAME }}/portfolio-api:latest
+            sudo docker run -d --restart always --name portfolio-api-container -p 8000:8000 --env-file /home/ubuntu/.env ${{ secrets.DOCKER_USERNAME }}/portfolio-api:latest
             sudo docker image prune -f
