@@ -5,6 +5,7 @@ import { Admin } from "../models/admin_users.model.js";
 import { SiteContent } from "../models/site_content.model.js";
 
 
+
 const writeContent = asyncHandler(async (req, res) => {
     //deconstruct the sectionKey,contentValue,contentType from body
     //get user id from auth middlewhere using req.user?._id

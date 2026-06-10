@@ -11,7 +11,6 @@ import { Image } from "../models/project_images.model.js"
 // import { Admin } from "../models/admin_users.model.js";
 
 
-
 const createProject = asyncHandler(async (req, res) => {
     //destructure the body of the form or the body 
     //verify everything

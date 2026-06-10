@@ -10,6 +10,7 @@ import sendMessage from "../routers/contact_messages.router.js"
 import projectRouter from "../routers/Project.router.js"
 import imageRouter from "../routers/project_images.router.js"
 
+
 const app = express()
 
 const allowedOrigins = process.env.CORS_ORIGIN === "*"
