@@ -5,6 +5,7 @@ import { Message } from "../models/contact_messages.model.js";
 import { Admin } from "../models/admin_users.model.js";
 
 
+
 //visitor side
 const SavetheDataOfForm = asyncHandler(async (req, res) => {
     //Take data form the user form like name,email,message,username
@@ -53,40 +54,44 @@ const DiscoverMessage = asyncHandler(async (req, res) => {
     //find the sorted data from the message based on admin id 
     //set the isread date
     //send the response to the admin
-    const filtered = await Message.find(
-        {
-            repliedExpectedByAdminId: req.user?._id,
-            isRead: false
-        },
-    ).select("-isRead -repliedAt").sort({ createdAt: -1 })
-
-    if (filtered.length === 0) {
-        throw new ApiError(404, "the message is not saved")
-    }
-
-    const messageIds = filtered.map(msg => msg._id);
-
-    await Message.updateMany(
-        {
-            _id: { $in: messageIds }
-        },
-        {
-            $set:
+    try {
+        const filtered = await Message.find(
             {
-                isRead: true,
+                repliedExpectedByAdminId: req.user?._id,
+                isRead: false
+            },
+        ).select("-isRead -repliedAt").sort({ createdAt: -1 })
+    
+        if (filtered.length === 0) {
+            throw new ApiError(404, "the message is not saved")
+        }
+    
+        const messageIds = filtered.map(msg => msg._id);
+    
+        await Message.updateMany(
+            {
+                _id: { $in: messageIds }
+            },
+            {
+                $set:
+                {
+                    isRead: true,
+                    repliedAt: new Date()
+                }
+            }
+        )
+    
+        return res.status(200).json(new ApiResponse(200, {
+            updatedStatus:
+            {
+                filtered, isRead: true,
                 repliedAt: new Date()
             }
-        }
-    )
-
-    return res.status(200).json(new ApiResponse(200, {
-        updatedStatus:
-        {
-            filtered, isRead: true,
-            repliedAt: new Date()
-        }
-    }, "message completed successfully"))
-
+        }, "message completed successfully"))
+    
+    } catch (error) {
+        throw new ApiError(500,error?.message || "Internal server error")
+    }
 
 
 })
