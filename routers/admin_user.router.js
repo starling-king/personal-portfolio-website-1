@@ -18,3 +18,4 @@ router.route("/changePassword").post(verifyJwt,changeCurrentPassword)
 router.route("/getCurrentUser").post(verifyJwt,getCurrentUser)
 router.route("/updateAdminDetails").post(verifyJwt,updateAdminDetails)
 export default router
+
