@@ -29,15 +29,18 @@ jobs:
           push: true
           tags: ${{ secrets.DOCKER_USERNAME }}/portfolio-api:latest
 
-      - name: Deploy to AWS EC2
-        uses: appleboy/ssh-action@master
-        with:
-          host: ${{ secrets.AWS_HOST }}
-          username: ubuntu
-          key: ${{ secrets.AWS_PRIVATE_KEY }}
-          script: |
-            sudo docker pull ${{ secrets.DOCKER_USERNAME }}/portfolio-api:latest
-            sudo docker stop portfolio-api-container || true
-            sudo docker rm portfolio-api-container || true
-            sudo docker run -d --restart always --name portfolio-api-container -p 8000:8000 --env-file /home/ubuntu/.env ${{ secrets.DOCKER_USERNAME }}/portfolio-api:latest
-            sudo docker image prune -f
+        
+      - name: Trigger Render Deployment
+        run: curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK }}
+      # - name: Deploy to AWS EC2
+      #   uses: appleboy/ssh-action@master
+      #   with:
+      #     host: ${{ secrets.AWS_HOST }}
+      #     username: ubuntu
+      #     key: ${{ secrets.AWS_PRIVATE_KEY }}
+      #     script: |
+      #       sudo docker pull ${{ secrets.DOCKER_USERNAME }}/portfolio-api:latest
+      #       sudo docker stop portfolio-api-container || true
+      #       sudo docker rm portfolio-api-container || true
+      #       sudo docker run -d --restart always --name portfolio-api-container -p 8000:8000 --env-file /home/ubuntu/.env ${{ secrets.DOCKER_USERNAME }}/portfolio-api:latest
+      #       sudo docker image prune -f
