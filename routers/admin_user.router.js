@@ -15,7 +15,7 @@ router.route("/refreshAccessToken").post(refreshAccessToken)
 //secure section
 router.route("/logout").post(verifyJwt,logoutUser)
 router.route("/changePassword").post(verifyJwt,changeCurrentPassword)
-router.route("/getCurrentUser").post(verifyJwt,getCurrentUser)
+router.route("/getCurrentUser").get(verifyJwt,getCurrentUser)
 router.route("/updateAdminDetails").post(verifyJwt,updateAdminDetails)
 export default router
 
