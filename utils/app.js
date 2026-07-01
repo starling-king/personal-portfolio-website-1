@@ -13,6 +13,8 @@ import imageRouter from "../routers/project_images.router.js"
 
 const app = express()
 
+app.set("trust proxy", 1);
+
 const allowedOrigins = process.env.CORS_ORIGIN === "*"
   ? "*"
   : process.env.CORS_ORIGIN.split(',');

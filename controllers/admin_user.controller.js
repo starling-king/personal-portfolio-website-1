@@ -7,7 +7,8 @@ import jwt from "jsonwebtoken"
 const options = {
     httpOnly: true,
     secure: true,
-    sameSite: "None"
+    sameSite: "None",
+    domain: ".ayushdev.online"
 }
 
 const generateAccessAndRefreshTokens = async (userId) => {
@@ -125,7 +126,8 @@ const loginUser = asyncHandler(async (req, res) => {
         const options = {
             httpOnly: true,
             secure: true,
-            sameSite: "None"
+            sameSite: "None",
+            domain: ".ayushdev.online"
         }
 
         return res.status(200).cookie("accessToken", accessToken, options).cookie("refreshToken", refreshToken, options).json(
@@ -152,7 +154,8 @@ const logoutUser = asyncHandler(async (req, res) => {
         const options = {
             httpOnly: true,
             secure: true,
-            sameSite: "None"
+            sameSite: "None",
+            domain: ".ayushdev.online"
         }
         return res.status(200).clearCookie("accessToken", options).clearCookie("refreshToken", options)
             .json(
