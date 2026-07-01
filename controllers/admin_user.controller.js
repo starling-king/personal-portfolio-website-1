@@ -5,9 +5,10 @@ import { ApiResponse } from "../error/ApiResponse.error.js"
 import jwt from "jsonwebtoken"
 
 const options = {
-        httpOnly: true,
-        secure: true
-    }
+    httpOnly: true,
+    secure: true,
+    sameSite: "None"
+}
 
 const generateAccessAndRefreshTokens = async (userId) => {
     try {
@@ -39,8 +40,8 @@ const registerUser = asyncHandler(async (req, res) => {
 
     try {
         const { username, email, passwordHash } = req.body
-    
-    
+
+
         if (
             [username, email, passwordHash].some(
                 (field) => !field || String(field).trim() === ""
@@ -48,36 +49,46 @@ const registerUser = asyncHandler(async (req, res) => {
         ) {
             throw new ApiError(400, "All fields are required");
         }
-    
-    
+
+
         const exitingUser = await Admin.findOne({
             $or: [{ username }, { email }]
         })
-    
+
         if (exitingUser) {
             throw new ApiError(409, "user email and username already exist")
         }
-    
+
+        if (!/^\d{8}$/.test(passwordHash)) {
+            throw new ApiError(400, "Password must be exactly 8 numbers");
+        }
+
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        
+        if (!emailRegex.test(email)) {
+            throw new ApiError(400, "Invalid email address format.");
+        }
+
         const admin = await Admin.create({
             username: username.toLowerCase(),
             email,
             passwordHash
         })
-    
+
         const UserCreated = await Admin.findById(admin._id).select(
             "-passwordHash -refreshToken"
         )
-    
+
         if (!UserCreated) {
             throw new ApiError(500, "Something went wrong while restering the user")
         }
-    
-    
+
+
         return res.status(201).json(
             new ApiResponse(200, UserCreated, "User registered successfully")
         )
     } catch (error) {
-        throw new ApiError(500,error?.message || "Internal server error")
+        throw new ApiError(500, error?.message || "Internal server error")
     }
 
 })
@@ -95,31 +106,32 @@ const loginUser = asyncHandler(async (req, res) => {
         if (!(username || email)) {
             throw new ApiError(400, "username or password is required")
         }
-    
+
         const user = await Admin.findOne({
             $or: [{ username }, { email }]
         })
-    
+
         if (!user) {
             throw new ApiError(404, "user not found please register")
         }
-    
+
         const isPasswordValid = await user.isPasswordCorrect(passwordHash)
         if (!isPasswordValid) {
             throw new ApiError(401, "Invalid user credentials")
         }
-    
+
         const { accessToken, refreshToken } = await generateAccessAndRefreshTokens(user._id)
         const loggedInUser = await Admin.findById(user._id).select("-passwordHash -refreshToken")
         const options = {
             httpOnly: true,
-            secure: true
+            secure: true,
+            sameSite: "None"
         }
-    
+
         return res.status(200).cookie("accessToken", accessToken, options).cookie("refreshToken", refreshToken, options).json(
             new ApiResponse(200, { user: loggedInUser, accessToken }, "userloggedin successfully"))
     } catch (error) {
-        throw new ApiError(500,error?.message || "Internal server error")
+        throw new ApiError(500, error?.message || "Internal server error")
     }
 
 })
@@ -139,14 +151,15 @@ const logoutUser = asyncHandler(async (req, res) => {
         )
         const options = {
             httpOnly: true,
-            secure: true
+            secure: true,
+            sameSite: "None"
         }
         return res.status(200).clearCookie("accessToken", options).clearCookie("refreshToken", options)
             .json(
                 new ApiResponse(200, {}, "user logged out successfully")
             )
     } catch (error) {
-        throw new ApiError(500,error?.message || "Internal server error")
+        throw new ApiError(500, error?.message || "Internal server error")
     }
 
 })
@@ -170,37 +183,37 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
             incommingRefreshToken,
             process.env.REFRESH_TOKEN_SECRET
         )
-    
+
         const admin = await Admin.findById(decodedToken?._id)
-    
+
         if (!admin) {
-            throw new ApiError(401,"Invalid refresh token")
+            throw new ApiError(401, "Invalid refresh token")
         }
-    
+
         if (incommingRefreshToken !== admin?.refreshToken) {
-            throw new ApiError(401,"Refresh token is expired or used")
+            throw new ApiError(401, "Refresh token is expired or used")
         }
-    
-        const {newaccessToken,newrefreshToken}= await generateAccessAndRefreshTokens(admin._id)
-    
+
+        const { newaccessToken, newrefreshToken } = await generateAccessAndRefreshTokens(admin._id)
+
         return res.status(200)
-        .cookie("accessToken",newaccessToken,options)
-        .cookie("refreshToken",newrefreshToken,options)
-        .json(
-            new ApiResponse(
-                200,
-                {accessToken:newaccessToken},
-                "Access token refresh Successful"
+            .cookie("accessToken", newaccessToken, options)
+            .cookie("refreshToken", newrefreshToken, options)
+            .json(
+                new ApiResponse(
+                    200,
+                    { accessToken: newaccessToken },
+                    "Access token refresh Successful"
+                )
             )
-        )
     } catch (error) {
-        throw new ApiError(401,error?.message || "Invalid refresh token to access")
+        throw new ApiError(401, error?.message || "Invalid refresh token to access")
     }
 
 
 })
 
-const changeCurrentPassword = asyncHandler(async (req,res)=>{
+const changeCurrentPassword = asyncHandler(async (req, res) => {
     //decript the body
     //find the user id 
     //check the old password
@@ -208,54 +221,54 @@ const changeCurrentPassword = asyncHandler(async (req,res)=>{
     //send success response
 
     try {
-        const{oldpassword , newpassword} = req.body
+        const { oldpassword, newpassword } = req.body
         const user = await Admin.findById(req.user?.id)
         const isPasswordcorrect = await user.isPasswordCorrect(oldpassword)
-        if(!isPasswordcorrect ){
-            throw new ApiError(400,"invalid old password")
+        if (!isPasswordcorrect) {
+            throw new ApiError(400, "invalid old password")
         }
         user.passwordHash = newpassword;
-        await user.save({validateBeforeSave:false})
-    
-        return res.status(200).json(new ApiResponse(200,{},"password changed successfully"))
+        await user.save({ validateBeforeSave: false })
+
+        return res.status(200).json(new ApiResponse(200, {}, "password changed successfully"))
     } catch (error) {
-        throw new ApiError(500,error?.message || "Internal server error")
+        throw new ApiError(500, error?.message || "Internal server error")
     }
 
 })
 
-const getCurrentUser = asyncHandler(async(req,res)=>{
+const getCurrentUser = asyncHandler(async (req, res) => {
     // find current user using middlewhere 
     //select field
     //send the response
     try {
         const user = await Admin.findById(req.user?._id).select("-passwordHash -refreshToken")
-        return res.status(200).json(new ApiResponse(200,user,"current user fetched successfully"))
+        return res.status(200).json(new ApiResponse(200, user, "current user fetched successfully"))
     } catch (error) {
-        throw new ApiError(500,error?.message || "Internal server error")
+        throw new ApiError(500, error?.message || "Internal server error")
     }
 })
 
-const updateAdminDetails = asyncHandler(async(req,res)=>{
+const updateAdminDetails = asyncHandler(async (req, res) => {
     //get the parameters
     //using mongo db find and update the things 
     //send the updated information 
 
     try {
-        const {username,email} = req.body
+        const { username, email } = req.body
         if (!username || !email) {
-            throw new ApiError(400,"All fields are required")
+            throw new ApiError(400, "All fields are required")
         }
         const admin = await Admin.findByIdAndUpdate(
             req.user?._id,
             {
-                $set:{username,email}
+                $set: { username, email }
             },
-            {new:true}
+            { new: true }
         ).select("-passwordHash -refreshToken")
-        return res.status(200).json(new ApiResponse(200,admin,"Details changed successfully"))
+        return res.status(200).json(new ApiResponse(200, admin, "Details changed successfully"))
     } catch (error) {
-        throw new ApiError(500,error?.message || "Internal server error")
+        throw new ApiError(500, error?.message || "Internal server error")
     }
 })
 
