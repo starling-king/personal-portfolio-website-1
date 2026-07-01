@@ -8,7 +8,8 @@ const options = {
     httpOnly: true,
     secure: true,
     sameSite: "None",
-    domain: ".ayushdev.online"
+    domain: ".ayushdev.online",
+    path: "/"
 }
 
 const generateAccessAndRefreshTokens = async (userId) => {
