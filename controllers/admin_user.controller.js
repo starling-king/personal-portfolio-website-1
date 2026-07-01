@@ -143,11 +143,12 @@ const logoutUser = asyncHandler(async (req, res) => {
     //clear cookies
     //reset refresh token in the database
     try {
+
         await Admin.findByIdAndUpdate(
             req.user._id,
             {
                 $set:
-                    {refreshToken: undefined}
+                    {refreshToken: null}
             },
             { new: true }
         )
@@ -155,7 +156,8 @@ const logoutUser = asyncHandler(async (req, res) => {
             httpOnly: true,
             secure: true,
             sameSite: "None",
-            domain: ".ayushdev.online"
+            domain: ".ayushdev.online",
+            path: "/"
         }
         return res.status(200).clearCookie("accessToken", options).clearCookie("refreshToken", options)
             .json(
