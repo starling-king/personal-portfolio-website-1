@@ -67,7 +67,7 @@ const CreateImageCollectionOfProject = asyncHandler(async (req, res) => {
                 }
 
                 return {
-                    url: uploadResult.url,
+                    url: uploadResult.secure_url,
                     publicId: uploadResult.public_id
                 };
 
