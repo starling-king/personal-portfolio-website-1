@@ -23,11 +23,12 @@ const generateAccessAndRefreshTokens = async (userId) => {
         return { accessToken, refreshToken }
 
     } catch (error) {
-        const statusCode = error.statusCode || 500;
+        // const statusCode = error.statusCode || 500;
 
-        return res.status(statusCode).json(
-            new ApiResponse(statusCode, null, error.message || "Internal Server Error")
-        );
+        // return res.status(statusCode).json(
+        //     new ApiResponse(statusCode, null, error.message || "Internal Server Error")
+        // );
+        throw new ApiError(500, "Something went wrong while generating refresh and access token");
     }
 }
 
