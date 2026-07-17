@@ -23,7 +23,11 @@ const generateAccessAndRefreshTokens = async (userId) => {
         return { accessToken, refreshToken }
 
     } catch (error) {
-        throw new ApiError(500, "something went wrong while generating access and refresh token")
+        const statusCode = error.statusCode || 500;
+
+        return res.status(statusCode).json(
+            new ApiResponse(statusCode, null, error.message || "Internal Server Error")
+        );
     }
 }
 
@@ -66,7 +70,7 @@ const registerUser = asyncHandler(async (req, res) => {
         }
 
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-        
+
         if (!emailRegex.test(email)) {
             throw new ApiError(400, "Invalid email address format.");
         }
@@ -90,7 +94,10 @@ const registerUser = asyncHandler(async (req, res) => {
             new ApiResponse(200, UserCreated, "User registered successfully")
         )
     } catch (error) {
-        throw new ApiError(500, error?.message || "Internal server error")
+        const statusCode = error.statusCode || 500;
+        return res.status(statusCode).json(
+            new ApiResponse(statusCode, null, error.message || "Internal Server Error")
+        );
     }
 
 })
@@ -134,7 +141,10 @@ const loginUser = asyncHandler(async (req, res) => {
         return res.status(200).cookie("accessToken", accessToken, options).cookie("refreshToken", refreshToken, options).json(
             new ApiResponse(200, { user: loggedInUser, accessToken }, "userloggedin successfully"))
     } catch (error) {
-        throw new ApiError(500, error?.message || "Internal server error")
+        const statusCode = error.statusCode || 500;
+        return res.status(statusCode).json(
+            new ApiResponse(statusCode, null, error.message || "Internal Server Error")
+        );
     }
 
 })
@@ -164,7 +174,10 @@ const logoutUser = asyncHandler(async (req, res) => {
                 new ApiResponse(200, {}, "user logged out successfully")
             )
     } catch (error) {
-        throw new ApiError(500, error?.message || "Internal server error")
+        const statusCode = error.statusCode || 500;
+        return res.status(statusCode).json(
+            new ApiResponse(statusCode, null, error.message || "Internal Server Error")
+        );
     }
 
 })
@@ -212,7 +225,10 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
                 )
             )
     } catch (error) {
-        throw new ApiError(401, error?.message || "Invalid refresh token to access")
+        const statusCode = error.statusCode || 500;
+        return res.status(statusCode).json(
+            new ApiResponse(statusCode, null, error.message || "Internal Server Error")
+        );
     }
 
 
@@ -237,7 +253,10 @@ const changeCurrentPassword = asyncHandler(async (req, res) => {
 
         return res.status(200).json(new ApiResponse(200, {}, "password changed successfully"))
     } catch (error) {
-        throw new ApiError(500, error?.message || "Internal server error")
+        const statusCode = error.statusCode || 500;
+        return res.status(statusCode).json(
+            new ApiResponse(statusCode, null, error.message || "Internal Server Error")
+        );
     }
 
 })
@@ -250,7 +269,10 @@ const getCurrentUser = asyncHandler(async (req, res) => {
         const user = await Admin.findById(req.user?._id).select("-passwordHash -refreshToken")
         return res.status(200).json(new ApiResponse(200, user, "current user fetched successfully"))
     } catch (error) {
-        throw new ApiError(500, error?.message || "Internal server error")
+        const statusCode = error.statusCode || 500;
+        return res.status(statusCode).json(
+            new ApiResponse(statusCode, null, error.message || "Internal Server Error")
+        );
     }
 })
 
@@ -273,7 +295,10 @@ const updateAdminDetails = asyncHandler(async (req, res) => {
         ).select("-passwordHash -refreshToken")
         return res.status(200).json(new ApiResponse(200, admin, "Details changed successfully"))
     } catch (error) {
-        throw new ApiError(500, error?.message || "Internal server error")
+        const statusCode = error.statusCode || 500;
+        return res.status(statusCode).json(
+            new ApiResponse(statusCode, null, error.message || "Internal Server Error")
+        );
     }
 })
 

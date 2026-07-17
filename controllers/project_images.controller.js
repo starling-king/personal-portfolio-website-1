@@ -103,7 +103,9 @@ const CreateImageCollectionOfProject = asyncHandler(async (req, res) => {
 
     } catch (error) {
         const statusCode = error.statusCode || 500;
-        throw new ApiError(statusCode, error.message || "Internal server error during image upload");
+        return res.status(statusCode).json(
+            new ApiResponse(statusCode, null, error.message || "Internal Server Error")
+        );
     }
 })
 
@@ -139,7 +141,9 @@ const RemoveImageCollectionOfProject = asyncHandler(async (req, res) => {
 
     } catch (error) {
         const statusCode = error.statusCode || 500;
-        throw new ApiError(statusCode, error.message || "Internal server error during image deletion");
+        return res.status(statusCode).json(
+            new ApiResponse(statusCode, null, error.message || "Internal Server Error")
+        );
 
     }
 })

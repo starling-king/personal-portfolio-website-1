@@ -46,7 +46,10 @@ const SavetheDataOfForm = asyncHandler(async (req, res) => {
         res.status(201).json(new ApiResponse(201, { repliedAt, isRead }, "your message saved successfully"))
 
     } catch (error) {
-        throw new ApiError(500, "Failed to save the information")
+        const statusCode = error.statusCode || 500;
+        return res.status(statusCode).json(
+            new ApiResponse(statusCode, null, error.message || "Internal Server Error")
+        );
     }
 })
 
@@ -90,7 +93,10 @@ const DiscoverMessage = asyncHandler(async (req, res) => {
         }, "message completed successfully"))
     
     } catch (error) {
-        throw new ApiError(500,error?.message || "Internal server error")
+        const statusCode = error.statusCode || 500;
+        return res.status(statusCode).json(
+            new ApiResponse(statusCode, null, error.message || "Internal Server Error")
+        );
     }
 
 

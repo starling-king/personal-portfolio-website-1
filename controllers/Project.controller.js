@@ -76,7 +76,10 @@ const createProject = asyncHandler(async (req, res) => {
 
         return res.status(200).json(new ApiResponse(200, createProject, "The project created successfully"))
     } catch (error) {
-        throw new ApiError(500, error.message)
+        const statusCode = error.statusCode || 500;
+        return res.status(statusCode).json(
+            new ApiResponse(statusCode, null, error.message || "Internal Server Error")
+        );
     }
 
 })
@@ -99,7 +102,10 @@ const getAllAdminProjects = asyncHandler(async (req, res) => {
 
         return res.status(200).json(new ApiResponse(200, projectdata, "The data fetched successfully"))
     } catch (error) {
-        throw new ApiError(500, error.message)
+        const statusCode = error.statusCode || 500;
+        return res.status(statusCode).json(
+            new ApiResponse(statusCode, null, error.message || "Internal Server Error")
+        );
     }
 
 })
@@ -134,8 +140,9 @@ const getAdminProjectByID = asyncHandler(async (req, res) => {
         return res.status(200).json(new ApiResponse(200, projectdata[0], "Successful"))
     } catch (error) {
         const statusCode = error.statusCode || 500;
-
-        throw new ApiError(statusCode, error.message || "Internal Server Error");
+        return res.status(statusCode).json(
+            new ApiResponse(statusCode, null, error.message || "Internal Server Error")
+        );
     }
 
 })
@@ -229,8 +236,9 @@ const updateProject = asyncHandler(async (req, res) => {
 
     } catch (error) {
         const statusCode = error.statusCode || 500;
-
-        throw new ApiError(statusCode, error.message || "Internal Server Error");
+        return res.status(statusCode).json(
+            new ApiResponse(statusCode, null, error.message || "Internal Server Error")
+        );
     }
 
 })
@@ -272,8 +280,10 @@ const deleteProject = asyncHandler(async (req, res) => {
         return res.status(200).json(new ApiResponse(200, null, "the project delete successfully"))
 
     } catch (error) {
-        const statuscode1 = error.statusCode || 500;
-        throw new ApiError(statuscode1, error.message || "internal server error")
+       const statusCode = error.statusCode || 500;
+        return res.status(statusCode).json(
+            new ApiResponse(statusCode, null, error.message || "Internal Server Error")
+        );
     }
 
 })
@@ -333,8 +343,10 @@ const getPublicProjects = asyncHandler(async (req, res) => {
         return res.status(200).json(new ApiResponse(200, datavalue, "success to fetch data"))
 
     } catch (error) {
-        const statuscode1 = error.statusCode || 500
-        throw new ApiError(statuscode1, error.message || "failed to get the project")
+       const statusCode = error.statusCode || 500;
+        return res.status(statusCode).json(
+            new ApiResponse(statusCode, null, error.message || "Internal Server Error")
+        );
     }
 })
 
@@ -374,8 +386,10 @@ const getProjectBySlug = asyncHandler(async (req, res) => {
         return res.status(200).json(new ApiResponse(200, datavalueofslug[0], "successful fetch the project from slug"))
 
     } catch (error) {
-        const statuscode1 = error.statusCode || 500;
-        throw new ApiError(statuscode1, error.message || "internal server error")
+        const statusCode = error.statusCode || 500;
+        return res.status(statusCode).json(
+            new ApiResponse(statusCode, null, error.message || "Internal Server Error")
+        );
     }
 })
 
