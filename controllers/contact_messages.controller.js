@@ -66,7 +66,7 @@ const DiscoverMessage = asyncHandler(async (req, res) => {
         ).select("-isRead -repliedAt").sort({ createdAt: -1 })
     
         if (filtered.length === 0) {
-            throw new ApiError(404, "the message is not saved")
+            throw new ApiError(404, "Their is Zero Message")
         }
     
         const messageIds = filtered.map(msg => msg._id);
